@@ -85,8 +85,7 @@ class ImageGenerator:
                     prompt=prompt,
                     n=1,
                     size=self.image_size,  # type: ignore
-                    quality="auto",
-                    response_format="b64_json"
+                    quality="auto"
                 )
                 
                 # Get the base64 image data from the response
