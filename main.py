@@ -85,7 +85,7 @@ class ImageGenerator:
                     prompt=prompt,
                     n=1,
                     size=self.image_size,  # type: ignore
-                    quality="standard"
+                    quality="auto"
                 )
                 
                 # Get the image URL from the response
