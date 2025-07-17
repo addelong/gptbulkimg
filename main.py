@@ -12,7 +12,7 @@ import os
 import sys
 import base64
 from pathlib import Path
-from typing import List, Tuple, Optional, Literal
+from typing import List, Tuple, Literal
 from openai import AsyncOpenAI
 
 
@@ -61,16 +61,17 @@ class ImageGenerator:
         print(f"Found {len(paragraphs)} paragraphs to process.")
         return paragraphs
     
-    async def generate_image(self, paragraph: str, index: int) -> Tuple[int, str, Optional[bytes]]:
+    async def generate_image(self, paragraph: str, index: int, output_dir: str) -> Tuple[int, bool]:
         """
-        Generate an image for a single paragraph using OpenAI API.
+        Generate an image for a single paragraph using OpenAI API and save it immediately.
         
         Args:
             paragraph: Text content to generate image from
             index: Paragraph index (for numbering)
+            output_dir: Directory to save the image
             
         Returns:
-            Tuple of (index, paragraph, image_data)
+            Tuple of (index, success)
         """
         async with self.semaphore:
             # Truncate paragraph if too long (gpt-image-1 has a prompt limit)
@@ -98,11 +99,19 @@ class ImageGenerator:
                 
                 # Decode the base64 image data
                 image_data = base64.b64decode(b64_image)
-                return index, paragraph, image_data
+                
+                # Save image immediately
+                filename = f"{index + 1}.png"
+                filepath = Path(output_dir) / filename
+                
+                with open(filepath, 'wb') as f:
+                    f.write(image_data)
+                print(f"Saved: {filepath}")
+                return index, True
                     
             except Exception as e:
                 print(f"Error generating image {index + 1}: {e}")
-                return index, paragraph, None
+                return index, False
     
     async def process_paragraphs(self, paragraphs: List[str], output_dir: str = "."):
         """
@@ -117,14 +126,14 @@ class ImageGenerator:
         
         # Create tasks for all paragraphs
         tasks = [
-            self.generate_image(paragraph, i)
+            self.generate_image(paragraph, i, output_dir)
             for i, paragraph in enumerate(paragraphs)
         ]
         
         # Process all tasks concurrently
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Save successful results
+        # Count results
         successful = 0
         failed = 0
         
@@ -134,23 +143,11 @@ class ImageGenerator:
                 failed += 1
                 continue
             
-            index, paragraph, image_data = result
+            index, success = result
             
-            if image_data is None:
-                failed += 1
-                continue
-            
-            # Save image with numbered filename
-            filename = f"{index + 1}.png"
-            filepath = Path(output_dir) / filename
-            
-            try:
-                with open(filepath, 'wb') as f:
-                    f.write(image_data)
-                print(f"Saved: {filepath}")
+            if success:
                 successful += 1
-            except Exception as e:
-                print(f"Error saving {filepath}: {e}")
+            else:
                 failed += 1
         
         print(f"\nCompleted! {successful} images generated successfully, {failed} failed.")
