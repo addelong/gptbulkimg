@@ -11,22 +11,24 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Literal
 import requests
 from openai import AsyncOpenAI
 
 
 class ImageGenerator:
-    def __init__(self, api_key: str, max_concurrent: int = 5):
+    def __init__(self, api_key: str, max_concurrent: int = 5, image_size: Literal["auto", "1024x1024", "1536x1024", "1024x1536"] = "auto"):
         """
         Initialize the image generator.
         
         Args:
             api_key: OpenAI API key
             max_concurrent: Maximum number of concurrent requests (respecting rate limits)
+            image_size: Size of generated images (1024x1024, 1536x1024, 1024x1536, or auto)
         """
         self.client = AsyncOpenAI(api_key=api_key)
         self.max_concurrent = max_concurrent
+        self.image_size = image_size
         self.semaphore = asyncio.Semaphore(max_concurrent)
         
     def parse_text_file(self, file_path: str) -> List[str]:
@@ -82,7 +84,7 @@ class ImageGenerator:
                     model="gpt-image-1",
                     prompt=prompt,
                     n=1,
-                    size="1024x1024",
+                    size=self.image_size,  # type: ignore
                     quality="standard"
                 )
                 
@@ -182,6 +184,12 @@ def main():
         default=5,
         help="Maximum number of concurrent requests (default: 5)"
     )
+    parser.add_argument(
+        "-s", "--size",
+        choices=["auto", "1024x1024", "1536x1024", "1024x1536"],
+        default="auto",
+        help="Size of generated images: auto (default), 1024x1024 (square), 1536x1024 (landscape), 1024x1536 (portrait)"
+    )
     
     args = parser.parse_args()
     
@@ -192,7 +200,7 @@ def main():
         sys.exit(1)
     
     # Create generator and run
-    generator = ImageGenerator(api_key, max_concurrent=args.concurrent)
+    generator = ImageGenerator(api_key, max_concurrent=args.concurrent, image_size=args.size)
     paragraphs = generator.parse_text_file(args.text_file)
     
     # Run the async processing

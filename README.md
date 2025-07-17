@@ -57,8 +57,13 @@ python main.py input.txt -o ./generated_images/
 # Control concurrent requests (default: 5)
 python main.py input.txt -c 3
 
+# Specify image size
+python main.py input.txt -s 1536x1024  # landscape
+python main.py input.txt -s 1024x1536  # portrait
+python main.py input.txt -s 1024x1024  # square
+
 # Combine all options
-python main.py input.txt -k YOUR_API_KEY -o ./images/ -c 10
+python main.py input.txt -k YOUR_API_KEY -o ./images/ -c 10 -s 1536x1024
 ```
 
 ## Command Line Arguments
@@ -67,6 +72,7 @@ python main.py input.txt -k YOUR_API_KEY -o ./images/ -c 10
 - `-k, --api-key`: OpenAI API key (optional if set via environment variable)
 - `-o, --output-dir`: Output directory for generated images (default: current directory)
 - `-c, --concurrent`: Maximum number of concurrent requests (default: 5)
+- `-s, --size`: Image size - auto (default), 1024x1024 (square), 1536x1024 (landscape), 1024x1536 (portrait)
 
 ## Input File Format
 
@@ -116,10 +122,10 @@ A vintage leather messenger bag with brass buckles and rich brown color.
 A minimalist coffee mug with geometric patterns in black and white.
 ```
 
-Generate images in a specific folder:
+Generate images in a specific folder with landscape orientation:
 ```bash
 source venv/bin/activate
-python main.py products.txt -o ./product_images/
+python main.py products.txt -o ./product_images/ -s 1536x1024
 ```
 
 ### Example 3: Creative Writing Prompts
