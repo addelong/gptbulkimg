@@ -10,9 +10,9 @@ import argparse
 import asyncio
 import os
 import sys
+import base64
 from pathlib import Path
 from typing import List, Tuple, Optional, Literal
-import requests
 from openai import AsyncOpenAI
 
 
@@ -85,23 +85,20 @@ class ImageGenerator:
                     prompt=prompt,
                     n=1,
                     size=self.image_size,  # type: ignore
-                    quality="auto"
+                    quality="auto",
+                    response_format="b64_json"
                 )
                 
-                # Get the image URL from the response
+                # Get the base64 image data from the response
                 if not response.data or len(response.data) == 0:
                     raise Exception("No image data returned from API")
                 
-                image_url = response.data[0].url
-                if not image_url:
-                    raise Exception("No image URL returned from API")
+                b64_image = response.data[0].b64_json
+                if not b64_image:
+                    raise Exception("No base64 image data returned from API")
                 
-                # Download the image data
-                img_response = requests.get(image_url)
-                if img_response.status_code != 200:
-                    raise Exception(f"Failed to download image from {image_url}")
-                
-                image_data = img_response.content
+                # Decode the base64 image data
+                image_data = base64.b64decode(b64_image)
                 return index, paragraph, image_data
                     
             except Exception as e:

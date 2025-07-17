@@ -27,6 +27,8 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+> **Note**: The script now uses the GPT-Image-1 model which returns images as base64 data, eliminating the need for separate image downloads.
+
 ## Usage
 
 ### Basic Usage
