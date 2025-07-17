@@ -1,0 +1,29 @@
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Generated Images
+*.png
+*.jpg
+*.jpeg
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Environment Variables
+.env 
